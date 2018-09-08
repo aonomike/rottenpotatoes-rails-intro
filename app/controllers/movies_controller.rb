@@ -11,8 +11,16 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all.order(params[:sort_by])
+    @selected = params[:ratings]? params[:ratings].keys : []
+    if params[:ratings].nil?
+      @selected = Movie.select(:rating).map(&:rating).uniq
+      @movies = Movie.all.order(params[:sort_by])
+    else
+      @movies = Movie.where(rating: params[:ratings].keys).order(params[:sort_by])
+    end
     @hilite = {params[:sort_by] => 'hilite'}
+    @all_ratings = Movie.select(:rating).map(&:rating).uniq
+
   end
 
   def new
