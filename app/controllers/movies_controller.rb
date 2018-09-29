@@ -11,15 +11,32 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @selected = params[:ratings]? params[:ratings].keys : []
-    if params[:ratings].nil?
-      @selected = Movie.select(:rating).map(&:rating).uniq
-      @movies = Movie.all.order(params[:sort_by])
+  #  session[:ratings] = params[:ratings] ? params[:ratings] : []
+    session[:ratings] = params[:ratings] if params[:ratings]
+
+
+    session[:sort_by] = params[:sort_by] if params[:sort_by]
+    @selected = session[:ratings]
+    if session[:ratings]
+      @movies = Movie.where(rating: session[:ratings].keys).order(session[:sort_by])
     else
-      @movies = Movie.where(rating: params[:ratings].keys).order(params[:sort_by])
+      @selected = Movie.select(:rating).map(&:rating).uniq
+      @movies = Movie.all.order(session[:sort_by])
     end
-    @hilite = {params[:sort_by] => 'hilite'}
+
+    @hilite = {}
     @all_ratings = Movie.select(:rating).map(&:rating).uniq
+    if session[:sort_by]
+      @movies =  @movies.order(session[:sort_by])
+      @hilite = {session[:sort_by] => 'hilite'}
+    end
+    # if session[:sort_by] and session[:ratings]
+    #   redirect_to movies_path(sort_by: session[:sort_by], ratings: session[:ratings])
+    # elsif session[:sort_by] and session[:ratings].nil?
+    #   redirect_to movies_path(sort_by: session[:sort_by])
+    # elsif session[:sort_by].nil? and session[:ratings]
+    #     redirect_to movies_path(ratings: session[:ratings])
+    # end
 
   end
 
